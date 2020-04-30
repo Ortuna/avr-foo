@@ -1,30 +1,31 @@
 #define F_CPU 16000000
 #include <avr/io.h>
-#include <util/delay.h>
  
-int direction = 1;
-int dev = 5;
-
-void delay_ms(int n) {
- while(n--) {
-  _delay_ms(1);
- }
-}
+uint8_t timer_overflow = 0;
 
 int main()
 {
   DDRB |= (1 << PB5);    // Make pin 13 be an output.  
+
+  //TIMSK0 = (0x01 << TOIE0);
+  TCNT0  = 0x00;
+  OCR0A  = 0xFF;
+
+  TCCR0A = 0x00;
+  TCCR0B |= (0x01 << CS02) | (0x01 << CS00);
+
   while(1)
   {
-    PORTB |= (1 << PB5);   // Turn the LED on.
-    delay_ms((int) (1500 / dev));
-    PORTB &= ~(1 << PB5);  // Turn the LED off.
-    delay_ms((int) (1500 / dev));
+    if((TIFR0 & 0x01) == 1) {
+      TIFR0 |= (0x1 << TOV0);
 
-    if (dev >= 10 || dev <= 1)
-      direction = direction == 1 ? 0 : 1;
+      timer_overflow++;
+      if(timer_overflow == 6) {
+        timer_overflow = 0;
 
-    dev += direction == 1 ? 1 : -1;
+        PORTB ^= (0x01 << PB5);
+      }
 
+    }
   }
 }

@@ -24,3 +24,5 @@ image: main
 flash: image
 	$(FLASHER) -p $(TARGET_CPU) -cstk500v1 -P $(DEVICE) -U flash:w:image.hex -b57600
 
+watch: flash
+	cat $(DEVICE)
